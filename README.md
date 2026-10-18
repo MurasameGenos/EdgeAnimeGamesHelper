@@ -30,6 +30,8 @@ C# Windows 浏览器，默认主页为 **https://www.bilibili.com/**。可以搜
 
 先退出旧版，再运行新版。如果游戏中仍完全无响应，可退出程序后双击发行包里的 `launch-admin.cmd`，由你在 Windows UAC 提示中选择以管理员权限启动。程序不会自动提升权限；正常使用可以继续选择 `GuideBrowser.exe`。当前无法读取终末地的权限令牌，不能断定其权限级别；Windows 权限隔离也可能限制按键状态检测。
 
+当前环境的终末地复测结果：使用管理员入口后，`7` / `8` 已恢复响应。玩终末地时可优先使用 `launch-admin.cmd`。
+
 兼容检测不会拦截游戏自己的按键，所以游戏绑定到相同键位时也可能响应。具体游戏中的效果仍需实测；相关 Windows 行为见 [应用自定义热键限制](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputdevice) 与 [按键状态 API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)。
 
 普通界面可拖动标题栏、从边缘等比缩放，接近屏幕边缘放开鼠标时吸附。底部吸附使用完整显示器底边，不再停在任务栏上沿。沉浸使用实际 HWND 坐标定位，在网页布局完成后重新吸附并校验窗口底部，后续宽高比变化、轮询和隐藏恢复也保持贴底。需要调整位置或大小时，可先按 `8` 恢复浏览器界面。
