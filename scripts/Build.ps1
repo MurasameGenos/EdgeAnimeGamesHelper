@@ -28,7 +28,7 @@ foreach ($assembly in @('Microsoft.Web.WebView2.Core.dll', 'Microsoft.Web.WebVie
 Copy-Item -LiteralPath (Join-Path $sdkDirectory 'runtimes\win-x64\native\WebView2Loader.dll') -Destination $outputDirectory -Force
 Copy-Item -LiteralPath (Join-Path $sdkDirectory 'LICENSE.txt') -Destination (Join-Path $outputDirectory 'WebView2-LICENSE.txt') -Force
 Copy-Item -LiteralPath (Join-Path $sdkDirectory 'NOTICE.txt') -Destination (Join-Path $outputDirectory 'WebView2-NOTICE.txt') -Force
-foreach ($file in @('README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'launch.cmd')) { Copy-Item -LiteralPath (Join-Path $repoRoot $file) -Destination $outputDirectory -Force }
+foreach ($file in @('README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'launch.cmd', 'launch-admin.cmd')) { Copy-Item -LiteralPath (Join-Path $repoRoot $file) -Destination $outputDirectory -Force }
 New-Item -ItemType Directory -Path (Join-Path $outputDirectory 'docs') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'docs\VALIDATION.md') -Destination (Join-Path $outputDirectory 'docs\VALIDATION.md') -Force
 if (-not $SkipTests) { & (Join-Path $PSScriptRoot 'Test.ps1') -ExecutablePath (Join-Path $outputDirectory 'GuideBrowser.exe') }

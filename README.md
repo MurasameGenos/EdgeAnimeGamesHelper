@@ -24,6 +24,14 @@ C# Windows 浏览器，默认主页为 **https://www.bilibili.com/**。可以搜
 
 输入包含这些按键的网址、搜索内容或验证码前，可点击底部“暂停热键”，输入后再点击“恢复热键”。托盘中也可以暂停全部热键、显示浏览器、重置位置或退出。若某个按键已被其他程序占用，会显示冲突提示。
 
+## 终末地按键兼容
+
+当 `Endfield.exe`（或 `endfild.exe`）处于前台时，会自动改用按键状态检测，兼容普通系统热键消息未送达的情况。检测仅覆盖上述控制键和必要修饰键，按下触发一次；隐藏后依然只接受 `7`，切出游戏后恢复普通系统热键。
+
+先退出旧版，再运行新版。如果游戏中仍完全无响应，可退出程序后双击发行包里的 `launch-admin.cmd`，由你在 Windows UAC 提示中选择以管理员权限启动。程序不会自动提升权限；正常使用可以继续选择 `GuideBrowser.exe`。当前无法读取终末地的权限令牌，不能断定其权限级别；Windows 权限隔离也可能限制按键状态检测。
+
+兼容检测不会拦截游戏自己的按键，所以游戏绑定到相同键位时也可能响应。具体游戏中的效果仍需实测；相关 Windows 行为见 [应用自定义热键限制](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputdevice) 与 [按键状态 API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)。
+
 普通界面可拖动标题栏、从边缘等比缩放，接近屏幕边缘放开鼠标时吸附。底部吸附使用完整显示器底边，不再停在任务栏上沿。沉浸使用实际 HWND 坐标定位，在网页布局完成后重新吸附并校验窗口底部，后续宽高比变化、轮询和隐藏恢复也保持贴底。需要调整位置或大小时，可先按 `8` 恢复浏览器界面。
 
 ## 浏览器
@@ -53,6 +61,8 @@ Windows 10 / 11 x64，需 .NET Framework 4.8 和 Microsoft Edge WebView2 Evergre
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Build.ps1 -Package
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test.ps1
+# 无需桌面输入的脚本测试和游戏兼容状态测试（适合 CI）
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test.ps1 -HeadlessOnly
 # Windows 限制后台测试窗取得前台时，允许手动激活专用测试窗后继续
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test.ps1 -InteractiveFocus
 # 当前程序正在运行时，可在其他目录构建，避免覆盖运行中的 EXE
@@ -61,6 +71,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Build.ps1 -SkipTes
 
 构建使用 Windows 自带 C# 编译器，首次从官方 NuGet 获取固定版本 SDK 并检查 SHA-256；测试需要 Node.js。运行目录为 `dist/GuideBrowser/`。只构建和打包时，可使用 `Build.ps1 -SkipTests -Package`。
 
-GitHub Actions 在 Windows 上运行脚本单元测试并编译、打包应用。需要真实桌面的窗口与全局按键检查在本地执行。
+GitHub Actions 在 Windows 上运行脚本单元测试、游戏兼容状态测试并编译、打包应用。需要真实桌面的窗口与全局按键检查在本地执行。
 
 测试与实际程序使用同一套控制绑定，通过真实 Windows `SendInput` 验证按键、视频、隐藏释放和窗口吸边，详见 [验收记录](docs/VALIDATION.md)。

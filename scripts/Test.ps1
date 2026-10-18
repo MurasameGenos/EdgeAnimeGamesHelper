@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$InteractiveFocus, [string]$ExecutablePath)
+param([switch]$InteractiveFocus, [switch]$HeadlessOnly, [string]$ExecutablePath)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $testFile = Join-Path $repoRoot 'tests\video-bridge.mjs'
@@ -11,7 +11,7 @@ $executable = if ($ExecutablePath) { [System.IO.Path]::GetFullPath($ExecutablePa
 if (-not (Test-Path -LiteralPath $executable)) { throw 'Build the app first.' }
 $start = New-Object System.Diagnostics.ProcessStartInfo
 $start.FileName = $executable
-$start.Arguments = '--self-test'
+$start.Arguments = if ($HeadlessOnly) { '--test-game-input' } else { '--self-test' }
 $start.UseShellExecute = $false
 $start.CreateNoWindow = $true
 $start.RedirectStandardOutput = $true
@@ -30,10 +30,12 @@ $report = $stdout.Result
 $errorOutput = $stderr.Result
 $artifacts = Join-Path $repoRoot 'artifacts'
 New-Item -ItemType Directory -Path $artifacts -Force | Out-Null
-[System.IO.File]::WriteAllText((Join-Path $artifacts 'app-self-test.json'), $report, (New-Object System.Text.UTF8Encoding($false)))
+$reportFile = if ($HeadlessOnly) { 'game-input-test.json' } else { 'app-self-test.json' }
+[System.IO.File]::WriteAllText((Join-Path $artifacts $reportFile), $report, (New-Object System.Text.UTF8Encoding($false)))
 if ($appProcess.ExitCode -ne 0) { Write-Output $report; throw ('Application self-test failed. ' + $errorOutput) }
 $result = $report | ConvertFrom-Json
 if (-not $result.ok) { throw 'Application did not report successful tests.' }
-Write-Host ('PASS: ' + $result.tests.Count + ' standalone app checks (actual WebView2, HWND, video, global hotkeys and cleanup).')
-Write-Host ('Report: ' + (Join-Path $artifacts 'app-self-test.json'))
+if ($HeadlessOnly) { Write-Host ('PASS: ' + $result.tests.Count + ' deterministic game input checks (synthetic foreground/key state).') }
+else { Write-Host ('PASS: ' + $result.tests.Count + ' standalone app checks (actual WebView2, HWND, video, global hotkeys and cleanup).') }
+Write-Host ('Report: ' + (Join-Path $artifacts $reportFile))
 $appProcess.Dispose()

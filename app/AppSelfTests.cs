@@ -35,6 +35,7 @@ namespace EdgeAnimeGamesHelper
             {
                 try
                 {
+                    results.AddRange(GameInputFallbackTests.Run());
                     Check(OverlayGeometry.Snap(new Rectangle(-1270, 12, 800, 500), new Rectangle(-1280, 0, 1280, 1040), 24).Location == new Point(-1280, 0), "negative-monitor edge snapping");
                     Rectangle kept = OverlayGeometry.KeepAspect(new Rectangle(20, 30, 976, 600), new Rectangle(20, 30, 816, 566), 2, 16.0 / 9, 16, 116, new Size(360, 240));
                     Check(kept.Width == 976 && kept.Height == 656, "resize keeps video ratio after browser chrome insets");

@@ -15,9 +15,10 @@ namespace EdgeAnimeGamesHelper
         private readonly Form form;
         private readonly Action<string> command;
         private readonly OverlayNativeWindow native;
+        private readonly GameInputFallback gameInput;
         private readonly NotifyIcon tray;
         private readonly ContextMenuStrip trayMenu;
-        private readonly ToolStripMenuItem visibilityMenu, hotkeysMenu, immersionMenu;
+        private readonly ToolStripMenuItem visibilityMenu, hotkeysMenu, immersionMenu, inputModeMenu;
         private readonly Timer topmostTimer;
         private readonly List<int> registered = new List<int>();
         private bool disposed, hidden, immersive;
@@ -43,8 +44,11 @@ namespace EdgeAnimeGamesHelper
             native = new OverlayNativeWindow(form);
             native.Hotkey += OnHotkey;
             native.MoveEnded += SnapToEdge;
+            gameInput = new GameInputFallback(OnGameInput);
             trayMenu = new ContextMenuStrip();
             trayMenu.Items.Add(new ToolStripMenuItem("攻略小窗 " + Application.ProductVersion) { Enabled = false });
+            inputModeMenu = new ToolStripMenuItem("输入：系统热键") { Enabled = false };
+            trayMenu.Items.Add(inputModeMenu);
             trayMenu.Items.Add("显示浏览器", null, delegate { RestoreBrowser(); });
             visibilityMenu = new ToolStripMenuItem("隐藏窗口（7）", null, delegate { ToggleVisibility(); });
             immersionMenu = new ToolStripMenuItem("沉浸模式（8）", null, delegate { if (!hidden) command("toggleImmersion"); });
@@ -60,6 +64,7 @@ namespace EdgeAnimeGamesHelper
             topmostTimer = new Timer { Interval = 1000 };
             topmostTimer.Tick += delegate
             {
+                UpdateTray();
                 if (hidden) return;
                 if (immersive) RefreshImmersivePosition();
                 else KeepTopmost();
@@ -216,6 +221,7 @@ namespace EdgeAnimeGamesHelper
         private void ConfigureHotkeys()
         {
             error = String.Empty;
+            gameInput.UpdateState(hotkeysEnabled, hidden);
             if (!hotkeysEnabled) { UnregisterHotkeys(); return; }
             if (hidden)
             {
@@ -267,12 +273,22 @@ namespace EdgeAnimeGamesHelper
         private void OnHotkey(int id)
         {
             if (disposed || !hotkeysEnabled || !registered.Contains(id)) return;
+            // Games can disable application-defined hotkey messages. A foreground
+            // game uses one polling backend, so the same press cannot fire twice.
+            if (gameInput.ShouldUseFallbackForForeground()) return;
             if (id == VisibilityId || id == NumpadVisibilityId) { ToggleVisibility(); return; }
             if (hidden) return;
             if (id == ImmersionId || id == NumpadImmersionId) command("toggleImmersion");
             else if (id == PauseId || id == ShiftPauseId) command("togglePause");
             else if (id == BackwardId || id == NumpadBackwardId) command("seekBackward");
             else if (id == ForwardId || id == NumpadForwardId) command("seekForward");
+        }
+
+        private void OnGameInput(string action)
+        {
+            if (disposed || !hotkeysEnabled) return;
+            if (action == "toggleVisibility") { ToggleVisibility(); return; }
+            if (!hidden) command(action);
         }
 
         private void SnapToEdge()
@@ -301,6 +317,7 @@ namespace EdgeAnimeGamesHelper
             immersionMenu.Enabled = !hidden;
             immersionMenu.Text = immersive ? "退出沉浸模式（8）" : "沉浸模式（8）";
             hotkeysMenu.Checked = hotkeysEnabled;
+            inputModeMenu.Text = gameInput.ShouldUseFallbackForForeground() ? "输入：终末地兼容检测" : "输入：系统热键";
             tray.Text = "攻略小窗 · " + (hidden ? "已隐藏，仅 7 可恢复" : immersive ? "沉浸模式" : "浏览器");
         }
         private void PublishState()
@@ -317,6 +334,7 @@ namespace EdgeAnimeGamesHelper
             disposed = true;
             topmostTimer.Stop();
             topmostTimer.Dispose();
+            gameInput.Dispose();
             UnregisterHotkeys();
             form.FormClosed -= OnFormClosed;
             native.Hotkey -= OnHotkey;

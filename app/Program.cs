@@ -15,6 +15,21 @@ namespace EdgeAnimeGamesHelper
         [STAThread]
         private static int Main(string[] args)
         {
+            if (Array.IndexOf(args, "--test-game-input") >= 0)
+            {
+                try
+                {
+                    object result = new { ok = true, tests = GameInputFallbackTests.Run() };
+                    using (System.IO.StreamWriter output = new System.IO.StreamWriter(Console.OpenStandardOutput(), new System.Text.UTF8Encoding(false)))
+                        output.WriteLine(new JavaScriptSerializer().Serialize(result));
+                    return 0;
+                }
+                catch (Exception error)
+                {
+                    Console.Error.WriteLine(error.Message);
+                    return 1;
+                }
+            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             if (Array.IndexOf(args, "--self-test") >= 0) return AppSelfTests.Run();

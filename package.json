@@ -1,6 +1,6 @@
 {
   "name": "edge-anime-games-helper",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Standalone Windows WebView2 guide browser with global playback hotkeys and borderless immersion",
   "scripts": {
