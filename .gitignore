@@ -1,0 +1,12 @@
+dist/
+artifacts/
+.runtime/
+node_modules/
+*.user
+*.suo
+*.log
+__pycache__/
+.deps/
+.vs/
+bin/
+obj/

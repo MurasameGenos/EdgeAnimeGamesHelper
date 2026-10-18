@@ -1,0 +1,11 @@
+{
+  "name": "edge-anime-games-helper",
+  "version": "0.2.3",
+  "private": true,
+  "description": "Standalone Windows WebView2 guide browser with global playback hotkeys and borderless immersion",
+  "scripts": {
+    "test": "node --test tests/video-bridge.mjs",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Build.ps1",
+    "test:app": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test.ps1"
+  }
+}
